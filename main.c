@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
+#include "lv_drivers/indev/evdev.h"
 
 #define DISP_BUF_SIZE (80 * LV_HOR_RES_MAX)
 
@@ -15,6 +16,9 @@ int main(void)
 
     /*Linux frame buffer device init*/
     fbdev_init();
+
+    /*Touch device init*/
+    evdev_init();
 
     /*A small buffer for LittlevGL to draw the screen's content*/
     static lv_color_t buf[DISP_BUF_SIZE];
@@ -29,6 +33,13 @@ int main(void)
     disp_drv.buffer   = &disp_buf;
     disp_drv.flush_cb = fbdev_flush;
     lv_disp_drv_register(&disp_drv);
+
+    /*Initialize and register a touch driver*/
+    lv_indev_drv_t indev_drv;
+    lv_indev_drv_init(&indev_drv);
+    indev_drv.type = LV_INDEV_TYPE_POINTER;
+    indev_drv.read_cb = evdev_read;
+    lv_indev_drv_register(&indev_drv);
 
     /*Create a Demo*/
     lv_demo_widgets();
